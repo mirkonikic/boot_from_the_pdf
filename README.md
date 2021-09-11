@@ -9,3 +9,5 @@ Assembly BIOS programming, program that implements ___________
 ###todo:
 - [ ] finish the boot loader game
 - [ ] merge that binary into pdf file
+- [ ] version1: game and game_doc.pdf
+- [ ] version2: CV and CVinPDF.pdf
