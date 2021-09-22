@@ -1,5 +1,5 @@
 # boot_sector_game
-Assembly BIOS programming, program that implements ___________
+Assembly BIOS programming, program that implements bootable CV/game
 
 
 ### Version 2:<br>
