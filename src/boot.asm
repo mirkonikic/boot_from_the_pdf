@@ -48,15 +48,42 @@ drawPixel:		;draws pixel x=cx, y=dx
 	ret
 
 main:
-	mov bx, 10	;offset = 0
+	mov bx, 150+320*98	;offset = 0
 	mov al, 12	;red
-	mov cx, 40
+	mov cx, 190+320*98
 	call fillVRAM
-	mov bx, 330	;next row
-	mov al, 14
-	mov cx, 360
+	mov bx, 150+320*99	;next row
+	mov al, 12
+	mov cx, 190+320*99
 	call fillVRAM
-			
+	
+	mov bx, 150+320*100	;offset = 0
+	mov al, 12	;red
+	mov cx, 190+320*100
+	call fillVRAM	
+	mov bx, 150+320*101	;offset = 0
+	mov al, 12	;red
+	mov cx, 190+320*101
+	call fillVRAM
+
+	mov bx, 150+320*102	;offset = 0
+	mov al, 15	;red
+	mov cx, 190+320*102
+	call fillVRAM
+	mov bx, 150+320*103	;next row
+	mov al, 15
+	mov cx, 190+320*103
+	call fillVRAM
+	
+	mov bx, 150+320*104	;offset = 0
+	mov al, 15	;red
+	mov cx, 190+320*104
+	call fillVRAM
+	mov bx, 150+320*105	;next row
+	mov al, 15
+	mov cx, 190+320*105
+	call fillVRAM
+	
 
 jmp $
 times 510-($-$$) db 0
