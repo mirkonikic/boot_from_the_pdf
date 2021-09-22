@@ -2,9 +2,13 @@
 Assembly BIOS programming, program that implements ___________
 
 
+### Version 2:<br>
+![Version 2](img/version2.jpg)
+<br>
+
 ### Version 1:<br>
 ![Version 1](img/version1.jpg)
-
+<br>
 
 ###todo:
 - [ ] finish the boot loader game
