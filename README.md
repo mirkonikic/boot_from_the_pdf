@@ -1,6 +1,10 @@
 # boot_sector_game
 Assembly BIOS programming, program that implements bootable CV/game
 
+### Version 4:<br>
+![Version 4](img/version4.jpg)
+<br>
+
 ### Version 3:<br>
 ![Version 3](img/version3.jpg)
 <br>
