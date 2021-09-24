@@ -14,9 +14,11 @@ int 0x10
 mov ax, 0xa000	;init za ds i es
 mov ds, ax	;data segment -> vRAM
 
-xor ax, ax	;postavi na 0
+mov bp, 0x7c00
+xor ax, ax	;postavi ax na 0
 mov es, ax	;data
 mov ss, ax	;stack segment se nalazi na 7c00:0000
+mov sp, bp
 ;inicijalizuj stack pointer
 
 jmp main	;skoci na main odmah, da ne bi izvrsio sve procedure
@@ -48,33 +50,9 @@ resetcursor:
 	int 0x10
 	ret
 
-updatecursor:
-;Ako je preko kraja ekrana pozovi rxcur
-	cmp dl, 5
-	jne no_rx
-	call rxcur
-;Ako je ispod kraja ekrana pozovi rycur
-no_rx:	
-	cmp dh, 5
-	jne no_ry
-	call rycur
-no_ry:	
-	mov ah, 0x02
-	add dl, 0x01
-	int 0x10
-	ret
-
-rxcur:
-	xor dh, dh
-	add dl, 1
-	mov ah, 0x02
-	int 0x10
-	ret
-
-rycur:
-	xor dl, dl
-	xor dh, dh
-	mov ah, 0x02
+setcursor:
+	mov ah, 2
+	mov dx, 0x1201
 	int 0x10
 	ret
 
@@ -97,27 +75,43 @@ chprint:	;bl=boja; al=slovo; cx=brojslova; bh=bckg
 
 apress:
 ;ispisi education: muzicka, treca i FON
-	mov bx, 0+320*160
-	mov cx, 320
+	mov bp, opta
+	mov al, 0xA
+optprint:	
+	mov bx, 8+320*150
+	mov cx, 304
 	call fillVRAM
+
+	mov bl, al
+	mov cx, l_opt
+	call strprint
+
+	mov al, 15
+	mov bx, 8+320*158
+	mov cx, 304
+	call fillVRAM
+
 	jmp read_loop
 bpress:
 ;Ispisi achvmnts: fudbalx10, takmicenja, CEH...gitara, klavir i polja informatike
-	mov al, 14
-	mov bx, 0+320*160
-	mov cx, 320
-	call fillVRAM
-	jmp read_loop
+	mov al, 0x9
+	mov bp, optb
+	jmp optprint
 cpress:
 ;Ispisi projects: Github, sve sto si radio
-	mov al, 12
-	mov bx, 0+320*160
-	mov cx, 320
-	call fillVRAM
-	jmp read_loop
+	mov al, 0xC
+	mov bp, optc
+	jmp optprint
 
-epress:
-	call resetcursor
+epresson:
+	mov ah, 2
+	mov dx, 0x0201
+	int 0x10
+	mov bp, wrte
+	mov cx, 4
+	mov bl, 12
+	call strprint
+	call setcursor
 	jmp write_loop
 
 enterpress:
@@ -137,7 +131,7 @@ logoprint:
 	mov bx, 0x000e
 	mov bp, logo
 	mov cx, logo_len
-	mov dx, 0x000f ;00=0ti red		320 = 20*16 = a0 = 10*16 ali su slova 8x8
+	mov dx, 0x010f ;00=0ti red		320 = 20*16 = a0 = 10*16 ali su slova 8x8
 	call strprint
 	ret	
 
@@ -145,21 +139,24 @@ menuprint:
 	mov bx, 0x000f
 	mov bp, menu
 	mov cx, 5
-	mov dx, 0x0100
+	mov dx, 0x0201
 	call strprint
 	ret
 
 main:
 ;drawBorders
 	mov al, 15	;gornji i donji borders
-	mov cx, 2176
-	mov bx, 0+320*199
+	mov cx, 304
+	mov bx, 8+320*192
+	call fillVRAM
+
+	mov bx, 8+320*8
 	call fillVRAM
 
 ;drawHeaderLine
-	mov bx, 0+320*12
+	mov bx, 8+320*20
 	mov al, 14
-	mov cx, 320
+	mov cx, 304
 	call fillVRAM
 
 ;Write a logo string 'Mirkov CV'
@@ -196,6 +193,9 @@ main:
 ;Ocekuj klik korisnika, u zavisnosti od a, b, c ili d obrisi displej, ispisi logo i ispisi kratak tekst o tome
 ;Read input char, glavni loop ovde
 read_loop:
+;set cursor below
+	call setcursor
+	
 	mov ah, 00
 	int 0x16
 	cmp al, 'a'
@@ -206,24 +206,23 @@ read_loop:
 	je cpress
 ;AKO JE ESC IDI U WRITE LOOP
 	cmp al, 0x1b
-	je epress
+	je epresson
 	jmp read_loop
 
 write_loop:
 	mov ah, 00
 	int 0x16
-;AKO JE ESC ZAUSTAVI SE
 	cmp al, 0x1b
 	je main
-;AKO JE ENTER APDEJT CURSOR U SL LINIJU
-	;cmp al, 0xD
-	;je enterpress
-	;call chprint
-	;call updatecursor
-	mov cx, 1
-	mov [logo], al
-	mov bp, logo
-	call strprint
+
+;nek bude kao text editor
+;potreban je update cursor
+;	-kad se predje x_max ili y_max on predje u nov red
+;	-kad se klikne enter ode u nov red
+;	-kad se kliknu strelice, on poveca ili smanji dl i dh i postavi kursor
+;	-inicijalizuje kursor da trepce
+
+	call chprint
 	jmp write_loop
 
 ;TODO:
@@ -237,13 +236,19 @@ write_loop:
 ;Variables
 var dw " "
 menu db "menu:"
+wrte db "WrTE:"
 logo db " Mirkov CV "
 logo_len equ $-logo
 prompt db "Choose:"
 acone db "a)eduction"
 actwo db "b)achvmnts"
-acthree db "c)projects"
+acthree db "c)projcets"
 acwrite db "esc)write"
+
+opta db "a: aaaaaaaaaaaaaaaaaaaaaaaaaa"
+optb db "b: bbbbbbbbbbbbbbbbbbbbbbbbbb"
+optc db "c: cccccccccccccccccccccccccc"
+l_opt equ $-optc
 
 jmp $			;nemoj da izvrsavas dalje
 times 510-($-$$) db 0
